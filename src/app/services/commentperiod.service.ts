@@ -5,6 +5,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/of';
 import * as _ from 'lodash';
+import { of, forkJoin } from 'rxjs';
 
 import { ApiService } from './api';
 import { CommentPeriod } from 'app/models/commentperiod';
@@ -31,54 +32,19 @@ export class CommentPeriodService {
   // get all comment periods for the specified application id
   getAllByApplicationId(appId: string): Observable<CommentPeriod[]> {
     return this.api.getPeriodsByAppId(appId)
-      .map(res => {
-        const periods = res.text() ? res.json() : [];
-        periods.forEach((period, index) => {
-          periods[index] = new CommentPeriod(period);
-        });
-        return periods;
-      })
-      .map((periods: CommentPeriod[]) => {
-        if (periods.length === 0) {
-          return [] as CommentPeriod[];
-        }
-
-        // replace \\n (JSON format) with newlines in each comment period
-        periods.forEach((period, i) => {
-          if (periods[i].description) {
-            periods[i].description = periods[i].description.replace(/\\n/g, '\n');
-          }
-        });
-
-        return periods;
-      })
-      .catch(this.api.handleError);
+    .catch(this.api.handleError);
   }
 
   // get a specific comment period by its id
-  getById(periodId: string, forceReload: boolean = false): Observable<CommentPeriod> {
-    if (this.commentPeriod && this.commentPeriod._id === periodId && !forceReload) {
-      return Observable.of(this.commentPeriod);
-    }
-
+  getById(periodId: string): Observable<CommentPeriod> {
     return this.api.getPeriod(periodId)
       .map(res => {
-        const periods = res.text() ? res.json() : [];
         // return the first (only) comment period
-        return periods.length > 0 ? new CommentPeriod(periods[0]) : null;
-      })
-      .map((period: CommentPeriod) => {
-        if (!period) { return null as CommentPeriod; }
-
-        // replace \\n (JSON format) with newlines
-        if (period.description) {
-          period.description = period.description.replace(/\\n/g, '\n');
+        if (res[0] && res[0].length > 0) {
+          this.commentPeriod = new CommentPeriod(res[0]);
+          return this.commentPeriod;
         }
-
-        this.commentPeriod = period;
-        return this.commentPeriod;
-      })
-      .catch(this.api.handleError);
+      });
   }
 
   add(orig: CommentPeriod): Observable<CommentPeriod> {
@@ -93,12 +59,7 @@ export class CommentPeriodService {
       period.description = period.description.replace(/\n/g, '\\n');
     }
 
-    return this.api.addCommentPeriod(period)
-      .map(res => {
-        const cp = res.text() ? res.json() : null;
-        return cp ? new CommentPeriod(cp) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.addCommentPeriod(period);
   }
 
   save(orig: CommentPeriod): Observable<CommentPeriod> {
@@ -110,39 +71,19 @@ export class CommentPeriodService {
       period.description = period.description.replace(/\n/g, '\\n');
     }
 
-    return this.api.saveCommentPeriod(period)
-      .map(res => {
-        const cp = res.text() ? res.json() : null;
-        return cp ? new CommentPeriod(cp) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.saveCommentPeriod(period);
   }
 
   delete(period: CommentPeriod): Observable<CommentPeriod> {
-    return this.api.deleteCommentPeriod(period)
-      .map(res => {
-        const cp = res.text() ? res.json() : null;
-        return cp ? new CommentPeriod(cp) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.deleteCommentPeriod(period);
   }
 
   publish(period: CommentPeriod): Observable<CommentPeriod> {
-    return this.api.publishCommentPeriod(period)
-      .map(res => {
-        const cp = res.text() ? res.json() : null;
-        return cp ? new CommentPeriod(cp) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.publishCommentPeriod(period);
   }
 
   unPublish(period: CommentPeriod): Observable<CommentPeriod> {
-    return this.api.unPublishCommentPeriod(period)
-      .map(res => {
-        const cp = res.text() ? res.json() : null;
-        return cp ? new CommentPeriod(cp) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.unPublishCommentPeriod(period);
   }
 
   // returns first published period - multiple comment periods are currently not suported

@@ -52,7 +52,7 @@
           <td>
             {{item.properties.TENURE_STATUS | titlecase}}
           </td>
-          <td class="actions">
+            <td class="actions">
             <button class="btn btn-sm btn-primary" type="button" 
               *ngIf="!item.app" 
               (click)="importProject(item)">

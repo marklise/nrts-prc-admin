@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, HostListener } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Response } from '@angular/http/src/static_response';
 import { DialogService } from 'ng2-bootstrap-modal';
 import { Subject } from 'rxjs/Subject';
 import { Observable } from 'rxjs/Observable';
@@ -463,6 +462,10 @@ export class ApplicationAddEditComponent implements OnInit, OnDestroy {
   }
 
   uploadFiles(fileList: FileList, documents: Document[]) {
+    // If there are no documents yet, construct the object.
+    if (!this.application.documents) {
+      this.application.documents = [];
+    }
     for (let i = 0; i < fileList.length; i++) {
       if (fileList[i]) {
         const formData = new FormData();

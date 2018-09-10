@@ -36,5 +36,9 @@ export class CommentPeriod {
         }
       });
     }
+
+    if (obj && obj.description) {
+      this.description = obj.description.replace(/\\n/g, '\n');
+    }
   }
 }

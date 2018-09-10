@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DialogComponent, DialogService } from 'ng2-bootstrap-modal';
 import { Router } from '@angular/router';
 import * as _ from 'lodash';
+import { ApiService } from 'app/services/api';
 
 import { SearchService } from 'app/services/search.service';
 import { Client } from 'app/models/client';
@@ -27,7 +28,8 @@ export class SelectOrganizationComponent extends DialogComponent<DataModel, stri
   constructor(
     public dialogService: DialogService,
     private router: Router,
-    private searchService: SearchService
+    private searchService: SearchService,
+    private api: ApiService
   ) {
     super(dialogService);
   }
@@ -46,9 +48,7 @@ export class SelectOrganizationComponent extends DialogComponent<DataModel, stri
           });
         },
         error => {
-          // if 403, redir to login page
-          if (error.startsWith('403')) { this.router.navigate(['/login']); }
-          alert('Error loading clients');
+          this.api.ensureLoggedIn();
         });
   }
 

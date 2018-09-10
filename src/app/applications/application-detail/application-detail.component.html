@@ -27,11 +27,7 @@
         <section class="card bg-light">
           <h3>Basic Information</h3>
 
-          <div *ngIf="!application.features || application.features.length === 0">
-            <em>No features have been loaded.</em>
-          </div>
-
-          <div *ngIf="application.features?.length > 0">
+          <div>
             <ul class="application-detail__list">
               <li class="pt-0">
                 <span class="name">Type / Subtype</span>

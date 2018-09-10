@@ -16,41 +16,17 @@ export class DocumentService {
 
   // get all documents for the specified application id
   getAllByApplicationId(id: string): Observable<Document[]> {
-    return this.api.getDocumentsByAppId(id)
-      .map(res => {
-        const documents = res.text() ? res.json() : [];
-        documents.forEach((document, index) => {
-          documents[index] = new Document(document);
-        });
-        return documents;
-      })
-      .catch(this.api.handleError);
+    return this.api.getDocumentsByAppId(id);
   }
 
   // get all documents for the specified comment id
   getAllByCommentId(commentId: string): Observable<Document[]> {
-    return this.api.getDocumentsByCommentId(commentId)
-      .map(res => {
-        const documents = res.text() ? res.json() : [];
-        documents.forEach((document, i) => {
-          documents[i] = new Document(document);
-        });
-        return documents;
-      })
-      .catch(this.api.handleError);
+    return this.api.getDocumentsByCommentId(commentId);
   }
 
   // get all documents for the specified decision id
   getAllByDecisionId(decisionId: string): Observable<Document[]> {
-    return this.api.getDocumentsByDecisionId(decisionId)
-      .map(res => {
-        const documents = res.text() ? res.json() : [];
-        documents.forEach((document, i) => {
-          documents[i] = new Document(document);
-        });
-        return documents;
-      })
-      .catch(this.api.handleError);
+    return this.api.getDocumentsByDecisionId(decisionId);
   }
 
   // get a specific document by its id
@@ -61,52 +37,30 @@ export class DocumentService {
 
     return this.api.getDocument(documentId)
       .map(res => {
-        const document = res.text() ? res.json() : [];
         // return the first (only) document
-        return document.length > 0 ? new Document(document[0]) : null;
+        return new Document(res[0]);
       })
       .map((document: Document) => {
         if (!document) { return null as Document; }
 
         this.document = document;
         return this.document;
-      })
-      .catch(this.api.handleError);
+      });
   }
 
   add(formData: FormData): Observable<Document> {
-    return this.api.uploadDocument(formData)
-      .map(res => {
-        const d = res.text() ? res.json() : null;
-        return d ? new Document(d) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.uploadDocument(formData);
   }
 
   delete(document: Document): Observable<Document> {
-    return this.api.deleteDocument(document)
-      .map(res => {
-        const d = res.text() ? res.json() : null;
-        return d ? new Document(d) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.deleteDocument(document);
   }
 
   publish(document: Document): Observable<Document> {
-    return this.api.publishDocument(document)
-      .map(res => {
-        const d = res.text() ? res.json() : null;
-        return d ? new Document(d) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.publishDocument(document);
   }
 
   unPublish(document: Document): Observable<Document> {
-    return this.api.unPublishDocument(document)
-      .map(res => {
-        const d = res.text() ? res.json() : null;
-        return d ? new Document(d) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.unPublishDocument(document);
   }
 }

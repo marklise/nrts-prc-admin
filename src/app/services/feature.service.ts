@@ -14,26 +14,12 @@ export class FeatureService {
 
   getByDTID(tantalisId: number): Observable<Feature[]> {
     return this.api.getFeaturesByTantalisId(tantalisId)
-      .map(res => {
-        const feature = res.text() ? res.json() : [];
-        feature.forEach((feature, index) => {
-          feature[index] = new Feature(feature);
-        });
-        return feature;
-      })
-      .catch(this.api.handleError);
+    .catch(this.api.handleError);
   }
 
   getByApplicationId(applicationId: string): Observable<Feature[]> {
     return this.api.getFeaturesByApplicationId(applicationId)
-      .map(res => {
-        const feature = res.text() ? res.json() : [];
-        feature.forEach((feature, index) => {
-          feature[index] = new Feature(feature);
-        });
-        return feature;
-      })
-      .catch(this.api.handleError);
+    .catch(this.api.handleError);
   }
 
   // MBL TODO: PUT/POST/DELETE functionality.

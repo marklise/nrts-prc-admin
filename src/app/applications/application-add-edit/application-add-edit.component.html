@@ -251,7 +251,7 @@
                 <h4 class="mb-2">Decision Documents</h4>
 
                 <!-- Decision Document List -->
-                <ul class="doc-list mb-3" *ngIf="application.decision.documents.length > 0">
+                <ul class="doc-list mb-3" *ngIf="application.decision && application.decision.documents && application.decision.documents.length > 0">
                   <li *ngFor="let file of application.decision.documents">
                     <span class="cell icon">
                       <i class="material-icons">insert_drive_file</i>

@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/toPromise';
-import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/of';
+import { of, forkJoin } from 'rxjs';
+import { map, flatMap } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 
@@ -15,6 +15,10 @@ import { CommentPeriodService } from './commentperiod.service';
 import { CommentService } from './comment.service';
 import { DecisionService } from './decision.service';
 import { FeatureService } from './feature.service';
+import { Feature } from 'app/models/feature';
+import { Document } from 'app/models/document';
+import { CommentPeriod } from 'app/models/commentperiod';
+import { Decision } from 'app/models/decision';
 
 @Injectable()
 export class ApplicationService {
@@ -92,105 +96,99 @@ export class ApplicationService {
 
   // get all applications
   getAll(): Observable<Application[]> {
-    // first get the applications
-    return this.getAllInternal()
-      .mergeMap(applications => {
-        if (applications.length === 0) {
-          return Observable.of([] as Application[]);
-        }
+    // // first get the applications
+    return null;
+    // return this.getAllInternal()
+    //   .mergeMap(applications => {
+    //     if (applications.length === 0) {
+    //       return Observable.of([] as Application[]);
+    //     }
 
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    //     const now = new Date();
+    //     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-        // replace \\n (JSON format) with newlines in each application
-        applications.forEach((application, i) => {
-          if (applications[i].description) {
-            applications[i].description = applications[i].description.replace(/\\n/g, '\n');
-          }
-          if (applications[i].legalDescription) {
-            applications[i].legalDescription = applications[i].legalDescription.replace(/\\n/g, '\n');
-          }
-        });
+    //     // replace \\n (JSON format) with newlines in each application
+    //     applications.forEach((application, i) => {
+    //       if (applications[i].description) {
+    //         applications[i].description = applications[i].description.replace(/\\n/g, '\n');
+    //       }
+    //       if (applications[i].legalDescription) {
+    //         applications[i].legalDescription = applications[i].legalDescription.replace(/\\n/g, '\n');
+    //       }
+    //     });
 
-        const promises: Array<Promise<any>> = [];
+    //     const promises: Array<Promise<any>> = [];
 
-        // FUTURE: get the organization here
+    //     // FUTURE: get the organization here
 
-        // now get the current comment period for each application
-        applications.forEach((application, i) => {
-          promises.push(this.commentPeriodService.getAllByApplicationId(applications[i]._id)
-            .toPromise()
-            .then(periods => {
-              const cp = this.commentPeriodService.getCurrent(periods);
-              applications[i].currentPeriod = cp;
-              // derive comment period status for display
-              applications[i]['cpStatus'] = this.commentPeriodService.getStatus(cp);
-              // derive days remaining for display
-              // use moment to handle Daylight Saving Time changes
-              if (cp && this.commentPeriodService.isOpen(cp)) {
-                applications[i].currentPeriod['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
-              }
-            })
-          );
-        });
+    //     // now get the current comment period for each application
+    //     applications.forEach((application, i) => {
+    //       promises.push(this.commentPeriodService.getAllByApplicationId(applications[i]._id)
+    //         .toPromise()
+    //         .then(periods => {
+    //           const cp = this.commentPeriodService.getCurrent(periods);
+    //           applications[i].currentPeriod = cp;
+    //           // derive comment period status for display
+    //           applications[i]['cpStatus'] = this.commentPeriodService.getStatus(cp);
+    //           // derive days remaining for display
+    //           // use moment to handle Daylight Saving Time changes
+    //           if (cp && this.commentPeriodService.isOpen(cp)) {
+    //             applications[i].currentPeriod['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
+    //           }
+    //         })
+    //       );
+    //     });
 
-        // now get the number of pending comments for each application
-        applications.forEach((application, i) => {
-          promises.push(this.commentService.getAllByApplicationId(applications[i]._id)
-            .toPromise()
-            .then(comments => {
-              const pending = comments.filter(comment => this.commentService.isPending(comment));
-              applications[i]['numComments'] = pending.length.toString();
-            })
-          );
-        });
+    //     // now get the number of pending comments for each application
+    //     applications.forEach((application, i) => {
+    //       promises.push(this.commentService.getAllByApplicationId(applications[i]._id)
+    //         .toPromise()
+    //         .then(comments => {
+    //           const pending = comments.filter(comment => this.commentService.isPending(comment));
+    //           applications[i]['numComments'] = pending.length.toString();
+    //         })
+    //       );
+    //     });
 
-        // NOT NEEDED AT THIS TIME
-        // // now get the decision for each application
-        // applications.forEach((application, i) => {
-        //   promises.push(this.decisionService.getByApplicationId(applications[i]._id)
-        //     .toPromise()
-        //     .then(decision => applications[i].decision = decision)
-        //   );
-        // });
+    //     // NOT NEEDED AT THIS TIME
+    //     // // now get the decision for each application
+    //     // applications.forEach((application, i) => {
+    //     //   promises.push(this.decisionService.getByApplicationId(applications[i]._id)
+    //     //     .toPromise()
+    //     //     .then(decision => applications[i].decision = decision)
+    //     //   );
+    //     // });
 
-        // now get the referenced data (features) for each application
-        applications.forEach((application, i) => {
-          promises.push(this.featureService.getByApplicationId(application._id)
-            .toPromise()
-            .then(features => {
-              application.features = features;
+    //     // now get the referenced data (features) for each application
+    //     applications.forEach((application, i) => {
+    //       promises.push(this.featureService.getByApplicationId(application._id)
+    //         .toPromise()
+    //         .then(features => {
+    //           application.features = features;
 
-              // calculate Total Area (hectares) from all features
-              application.areaHectares = 0;
-              _.each(application.features, function (f) {
-                if (f['properties']) {
-                  application.areaHectares += f['properties'].TENURE_AREA_IN_HECTARES;
-                }
-              });
+    //           // calculate Total Area (hectares) from all features
+    //           application.areaHectares = 0;
+    //           _.each(application.features, function (f) {
+    //             if (f['properties']) {
+    //               application.areaHectares += f['properties'].TENURE_AREA_IN_HECTARES;
+    //             }
+    //           });
 
-              // derive application status for display
-              application['appStatus'] = this.getStatusString(application.status);
-            })
-          );
-        });
+    //           // derive application status for display
+    //           application['appStatus'] = this.getStatusString(application.status);
+    //         })
+    //       );
+    //     });
 
-        return Promise.all(promises).then(() => { return applications; });
-      })
-      .catch(this.api.handleError);
+    //     return Promise.all(promises).then(() => { return applications; });
+    //   })
+    //   .catch(this.api.handleError);
   }
 
   // get just the applications
-  private getAllInternal(): Observable<Application[]> {
+  private getAllInternal(): Observable<Object[]> {
     return this.api.getApplications()
-      .map(res => {
-        const applications = res.text() ? res.json() : [];
-        applications.forEach((application, i) => {
-          applications[i] = new Application(application);
-        });
-        return applications;
-      })
-      .catch(this.api.handleError);
+    .catch(this.api.handleError);
   }
 
   // get a specific application by its Tantalis ID
@@ -199,117 +197,80 @@ export class ApplicationService {
       return Observable.of(this.application);
     }
 
-    // first get the base application data
     return this.api.getApplicationByTantalisID(tantalisID)
-      .map(res => {
-        const applications = res.text() ? res.json() : [];
-        // return the first (only) application
-        return applications.length > 0 ? new Application(applications[0]) : null;
-      })
-      .mergeMap(application => {
-        // now get the rest of the application data
-        return this._getApplicationData(application, forceReload);
-      })
-      .catch(this.api.handleError);
+    .map(res => {
+      // return the first (only) application
+      return new Application(res[0]);
+    })
+    .catch(this.api.handleError);
   }
 
   // get a specific application by its object id
   getById(appId: string, forceReload: boolean = false): Observable<Application> {
     if (this.application && this.application._id === appId && !forceReload) {
-      return Observable.of(this.application);
+      return of(this.application);
     }
 
-    // first get the base application data
-    return this.api.getApplication(appId)
-      .map(res => {
-        const applications = res.text() ? res.json() : [];
-        // return the first (only) application
-        return applications.length > 0 ? new Application(applications[0]) : null;
-      })
-      .mergeMap(application => {
-        // now get the rest of the application data
-        return this._getApplicationData(application, forceReload);
-      })
-      .catch(this.api.handleError);
+    return this._getAppData(appId);
   }
 
-  private _getApplicationData(application: Application, forceReload: boolean): Promise<Application> {
-    if (!application) { return Promise.resolve(null); }
-
+  private _getAppData(appId: string): Observable<Application> {
+    const self = this;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // replace \\n (JSON format) with newlines
-    if (application.description) {
-      application.description = application.description.replace(/\\n/g, '\n');
-    }
-    if (application.legalDescription) {
-      application.legalDescription = application.legalDescription.replace(/\\n/g, '\n');
-    }
+    // rest call 1
+    return this.api.getApplication(appId)
+    .pipe(
+      flatMap(res => {
+        this.application = new Application(res[0]);
+        return forkJoin(
+          this.featureService.getByApplicationId(appId),
+          this.documentService.getAllByApplicationId(appId),
+          this.commentPeriodService.getAllByApplicationId(appId),
+          this.decisionService.getByApplicationId(appId)
+          )
+          .map(payloads => {
+            // Feature Request
+            self.application.features = payloads[0];
+            _.each(self.application.features, function (f) {
+              if (f['properties']) {
+                self.application.areaHectares += f['properties'].TENURE_AREA_IN_HECTARES;
+              }
+            });
 
-    const promises: Array<Promise<any>> = [];
+            // Document Request
+            _.each(payloads[1], function (d) {
+              const newDoc = new Document(d);
+              self.application.documents.push(newDoc);
+            });
 
-    // FUTURE: get the organization here
+            // Comment Period
+            const periods = [];
+            _.each(payloads[2], function (p) {
+              periods.push(new CommentPeriod(p));
+            })
 
-    // get the documents
-    promises.push(this.documentService.getAllByApplicationId(application._id)
-      .toPromise()
-      .then(documents => application.documents = documents)
-    );
+            const cp = this.commentPeriodService.getCurrent(periods);
+            self.application.currentPeriod = cp;
+            // derive comment period status for display
+            self.application['cpStatus'] = this.commentPeriodService.getStatus(cp);
 
-    // get the current comment period
-    promises.push(this.commentPeriodService.getAllByApplicationId(application._id)
-      .toPromise()
-      .then(periods => {
-        const cp = this.commentPeriodService.getCurrent(periods);
-        application.currentPeriod = cp;
-        // derive comment period status for display
-        application['cpStatus'] = this.commentPeriodService.getStatus(cp);
-        // derive days remaining for display
-        // use moment to handle Daylight Saving Time changes
-        if (cp && this.commentPeriodService.isOpen(cp)) {
-          application.currentPeriod['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
-        }
+            // derive days remaining for display
+            // use moment to handle Daylight Saving Time changes
+            if (cp && this.commentPeriodService.isOpen(cp)) {
+              self.application.currentPeriod['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
+            }
+
+            // Decision
+            const decision = payloads[3];
+            self.application.decision = decision;
+
+            // Finally update the object and return
+            return self.application;
+          });
       })
     );
-
-    // get the number of pending comments
-    promises.push(this.commentService.getAllByApplicationId(application._id)
-      .toPromise()
-      .then(comments => {
-        const pending = comments.filter(comment => this.commentService.isPending(comment));
-        application['numComments'] = pending.length.toString();
-      })
-    );
-
-    // get the decision
-    promises.push(this.decisionService.getByApplicationId(application._id, forceReload)
-      .toPromise()
-      .then(decision => application.decision = decision)
-    );
-
-    // get the referenced data (features)
-    promises.push(this.featureService.getByApplicationId(application._id)
-      .toPromise()
-      .then(features => {
-        application.features = features;
-        // calculate Total Area (hectares) from all features
-        application.areaHectares = 0;
-        _.each(features, function (f) {
-          if (f['properties']) {
-            application.areaHectares += f['properties'].TENURE_AREA_IN_HECTARES;
-          }
-        });
-
-        // derive application status for display
-        application['appStatus'] = this.getStatusString(application.status);
-      })
-    );
-
-    return Promise.all(promises).then(() => {
-      this.application = application;
-      return this.application;
-    });
   }
 
   // create new application
@@ -335,12 +296,7 @@ export class ApplicationService {
       app.legalDescription = app.legalDescription.replace(/\n/g, '\\n');
     }
 
-    return this.api.addApplication(app)
-      .map(res => {
-        const application = res.text() ? res.json() : [];
-        return new Application(application);
-      })
-      .catch(this.api.handleError);
+    return this.api.addApplication(app);
   }
 
   // update existing application
@@ -360,39 +316,19 @@ export class ApplicationService {
       app.legalDescription = app.legalDescription.replace(/\n/g, '\\n');
     }
 
-    return this.api.saveApplication(app)
-      .map(res => {
-        const a = res.text() ? res.json() : null;
-        return a ? new Application(a) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.saveApplication(app);
   }
 
   delete(app: Application): Observable<Application> {
-    return this.api.deleteApplication(app)
-      .map(res => {
-        const a = res.text() ? res.json() : null;
-        return a ? new Application(a) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.deleteApplication(app);
   }
 
   publish(app: Application): Observable<Application> {
-    return this.api.publishApplication(app)
-      .map(res => {
-        const a = res.text() ? res.json() : null;
-        return a ? new Application(a) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.publishApplication(app);
   }
 
   unPublish(app: Application): Observable<Application> {
-    return this.api.unPublishApplication(app)
-      .map(res => {
-        const a = res.text() ? res.json() : null;
-        return a ? new Application(a) : null;
-      })
-      .catch(this.api.handleError);
+    return this.api.unPublishApplication(app);
   }
 
   /**

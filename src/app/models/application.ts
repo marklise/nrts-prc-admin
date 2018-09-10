@@ -93,6 +93,10 @@ export class Application {
       });
     }
 
+    if (obj && obj.description) {
+      this.description = obj.description.replace(/\\n/g, '\n');
+    }
+
     this.documents = [];
     this.currentPeriod = null;
     this.decision = null;

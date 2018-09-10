@@ -5,7 +5,6 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxPaginationModule } from 'ngx-pagination';
-import { Ng2PageScrollModule } from 'ng2-page-scroll';
 import { BootstrapModalModule } from 'ng2-bootstrap-modal';
 import { CookieService } from 'ngx-cookie-service';
 
@@ -32,18 +31,18 @@ import { DecisionService } from 'app/services/decision.service';
 import { UserService } from 'app/services/user.service';
 import { CanDeactivateGuard } from 'app/services/can-deactivate-guard.service';
 import { ConfigService } from 'app/services/config.service';
-import { KeycloakService } from './keycloak.service';
+import { KeycloakService } from 'app/services/keycloak.service';
 
 // feature modules
 import { ApplicationsModule } from 'app/applications/applications.module';
 import { CommentingModule } from 'app/commenting/commenting.module';
 import { HeaderComponent } from 'app/header/header.component';
 import { FooterComponent } from 'app/footer/footer.component';
+import { SelectOrganizationComponent } from 'app/applications/select-organization/select-organization.component';
+import { TokenInterceptor } from './utils/token-interceptor';
 import { AdministrationComponent } from 'app/administration/administration.component';
 import { UsersComponent } from 'app/administration/users/users.component';
 import { AddEditUserComponent } from 'app/administration/users/add-edit-user/add-edit-user.component';
-import { SelectOrganizationComponent } from 'app/applications/select-organization/select-organization.component';
-import { TokenInterceptor } from './utils/token-interceptor';
 
 export function kcFactory(keycloakService: KeycloakService) {
   return () => keycloakService.init();
@@ -74,8 +73,7 @@ export function kcFactory(keycloakService: KeycloakService) {
     AppRoutingModule, // <-- module import order matters - https://angular.io/guide/router#module-import-order-matters
     NgbModule.forRoot(),
     NgxPaginationModule,
-    Ng2PageScrollModule.forRoot(),
-    BootstrapModalModule
+    BootstrapModalModule.forRoot({container: document.body})
   ],
   providers: [
     KeycloakService,
