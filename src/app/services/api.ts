@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http, Response, ResponseContentType, RequestOptions, Headers } from '@angular/http';
+import { HttpClient, Response, ResponseContentType, RequestOptions, Headers } from '@angular/common/http';
 import { Params, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
@@ -27,7 +27,7 @@ export class ApiService {
   params: Params;
   env: 'local' | 'dev' | 'test' | 'demo' | 'scale' | 'beta' | 'master' | 'prod';
 
-  constructor(private http: Http, private router: Router) {
+  constructor(private http: HttpClient, private router: Router) {
     const currentUser = JSON.parse(window.localStorage.getItem('currentUser'));
     this.token = currentUser && currentUser.token;
     this.isMS = window.navigator.msSaveOrOpenBlob ? true : false;
@@ -89,11 +89,18 @@ export class ApiService {
   }
 
   ensureLoggedIn() {
-    if (!this.token || !tokenNotExpired('currentUser')) {
-      console.log('not logged in, redirecting');
-      this.router.navigate(['login']);
-      return false;
-    }
+    // if (!this.token || !tokenNotExpired('currentUser')) {
+    //   console.log('not logged in, redirecting');
+    //   this.router.navigate(['login']);
+    //   return false;
+    // }    
+    // var keycloak = Keycloak();
+
+    // if (!this.token) {
+    //   console.log('not logged in, redirecting');
+    //   this.router.navigate(['login']);
+    //   return false;
+    // }
     return true;
   }
 
