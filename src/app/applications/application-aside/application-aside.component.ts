@@ -1,15 +1,11 @@
 import { Component, OnInit, OnChanges, OnDestroy, Input, SimpleChanges } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/takeUntil';
 import * as L from 'leaflet';
 import * as _ from 'lodash';
 
 import { Application } from 'app/models/application';
-import { Comment } from 'app/models/comment';
-import { ApiService } from 'app/services/api';
-import { CommentPeriodService } from 'app/services/commentperiod.service';
-import { CommentService } from 'app/services/comment.service';
+import { ConfigService } from 'app/services/config.service';
 import { FeatureService } from 'app/services/feature.service';
 
 @Component({
@@ -20,22 +16,16 @@ import { FeatureService } from 'app/services/feature.service';
 
 export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
   @Input() application: Application = null;
-  public numComments = ' ';
+
   private ngUnsubscribe: Subject<boolean> = new Subject<boolean>();
   public fg: L.FeatureGroup;
   public map: L.Map;
   public layers: L.Layer[];
-  private baseMaps: {};
-  private control: L.Control;
   private maxZoom = { maxZoom: 17 };
 
   constructor(
-    private api: ApiService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private featureService: FeatureService,
-    public commentPeriodService: CommentPeriodService, // used in template
-    private commentService: CommentService
+    public configService: ConfigService,
+    private featureService: FeatureService
   ) { }
 
   ngOnInit() {
@@ -66,18 +56,40 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     this.map = L.map('map', {
-      layers: [World_Imagery]
+      zoomControl: false // will be added manually below
     });
 
-    // set up the controls
-    this.baseMaps = {
+    // add zoom control
+    L.control.zoom({ position: 'topright' }).addTo(this.map);
+
+    // add scale control
+    L.control.scale({ position: 'bottomright' }).addTo(this.map);
+
+    // add base maps layers control
+    const baseLayers = {
       'Ocean Base': Esri_OceanBasemap,
       'Nat Geo World Map': Esri_NatGeoWorldMap,
       'Open Surfer Roads': OpenMapSurfer_Roads,
       'World Topographic': World_Topo_Map,
       'World Imagery': World_Imagery
     };
-    this.control = L.control.layers(this.baseMaps, null, { collapsed: true }).addTo(this.map);
+    L.control.layers(baseLayers, null, { collapsed: true }).addTo(this.map);
+
+    // load base layer
+    for (const key of Object.keys(baseLayers)) {
+      if (key === this.configService.baseLayerName) {
+        this.map.addLayer(baseLayers[key]);
+        break;
+      }
+    }
+
+    // save any future base layer changes
+    this.map.on('baselayerchange', function (e: L.LayersControlEvent) {
+      this.configService.baseLayerName = e.name;
+    }, this);
+
+    // reset view control
+    const self = this; // for closure function below
     const resetViewControl = L.Control.extend({
       options: {
         position: 'topleft'
@@ -96,7 +108,6 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
         this._element.onmouseover = () => this._element.style.backgroundColor = '#f4f4f4';
         this._element.onmouseout = () => this._element.style.backgroundColor = '#fff';
 
-        const self = this; // for closure function below
         this._element.onclick = function () {
           const bounds = self.fg.getBounds();
           if (bounds && bounds.isValid()) {
@@ -124,19 +135,6 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
 
   private updateData() {
     if (this.application) {
-      // get number of pending comments
-      if (this.application._id !== '0') {
-        this.commentService.getAllByApplicationId(this.application._id)
-          .takeUntil(this.ngUnsubscribe)
-          .subscribe(
-            (comments: Comment[]) => {
-              const pending = comments.filter(comment => this.commentService.isPending(comment));
-              this.numComments = pending.length.toString();
-            },
-            error => console.log('couldn\'t get pending comments, error =', error)
-          );
-      }
-
       const self = this; // for closure functions below
 
       if (this.fg) {
@@ -161,7 +159,6 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
                 delete f.geometry_name;
                 const featureObj: GeoJSON.Feature<any> = f;
                 const layer = L.geoJSON(featureObj);
-                const options = { maxWidth: 400 };
                 self.fg.addLayer(layer);
                 layer.addTo(self.map);
               });
@@ -182,7 +179,7 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
   // called from parent component
   public drawMap(app: Application) {
     if (app.tantalisID) {
-      const self = this;
+      const self = this; // for closure function below
       this.featureService.getByDTID(app.tantalisID)
         .takeUntil(this.ngUnsubscribe)
         .subscribe(
@@ -200,7 +197,6 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
               delete f.geometry_name;
               const featureObj: GeoJSON.Feature<any> = f;
               const layer = L.geoJSON(featureObj);
-              const options = { maxWidth: 400 };
               self.fg.addLayer(layer);
               layer.addTo(self.map);
             });
@@ -218,6 +214,7 @@ export class ApplicationAsideComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.map) { this.map.remove(); }
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }

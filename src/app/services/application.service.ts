@@ -96,8 +96,9 @@ export class ApplicationService {
 
   // get all applications
   getAll(): Observable<Application[]> {
-    // // first get the applications
+    // TODO
     return null;
+    // // first get the applications
     // return this.getAllInternal()
     //   .mergeMap(applications => {
     //     if (applications.length === 0) {
@@ -106,77 +107,61 @@ export class ApplicationService {
 
     //     const now = new Date();
     //     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    //     // replace \\n (JSON format) with newlines in each application
-    //     applications.forEach((application, i) => {
-    //       if (applications[i].description) {
-    //         applications[i].description = applications[i].description.replace(/\\n/g, '\n');
-    //       }
-    //       if (applications[i].legalDescription) {
-    //         applications[i].legalDescription = applications[i].legalDescription.replace(/\\n/g, '\n');
-    //       }
-    //     });
-
     //     const promises: Array<Promise<any>> = [];
 
-    //     // FUTURE: get the organization here
+    //     applications.forEach((application) => {
+    //       // replace \\n (JSON format) with newlines
+    //       if (application.description) {
+    //         application.description = application.description.replace(/\\n/g, '\n');
+    //       }
+    //       if (application.legalDescription) {
+    //         application.legalDescription = application.legalDescription.replace(/\\n/g, '\n');
+    //       }
 
-    //     // now get the current comment period for each application
-    //     applications.forEach((application, i) => {
-    //       promises.push(this.commentPeriodService.getAllByApplicationId(applications[i]._id)
+    //       // derive region code
+    //       application.region = this.getRegionCode(application.businessUnit);
+
+    //       // user-friendly application status
+    //       application['appStatus'] = this.getStatusString(this.getStatusCode(application.status));
+
+    //       // 7-digit CL File number for display
+    //       if (application.cl_file) {
+    //         application['clFile'] = application.cl_file.toString().padStart(7, '0');
+    //       }
+
+    //       // NB: we don't get the documents here
+
+    //       // get the current comment period
+    //       promises.push(this.commentPeriodService.getAllByApplicationId(application._id)
     //         .toPromise()
     //         .then(periods => {
     //           const cp = this.commentPeriodService.getCurrent(periods);
-    //           applications[i].currentPeriod = cp;
-    //           // derive comment period status for display
-    //           applications[i]['cpStatus'] = this.commentPeriodService.getStatus(cp);
+    //           application.currentPeriod = cp;
+    //           // user-friendly comment period status
+    //           application['cpStatus'] = this.commentPeriodService.getStatus(cp);
     //           // derive days remaining for display
     //           // use moment to handle Daylight Saving Time changes
     //           if (cp && this.commentPeriodService.isOpen(cp)) {
-    //             applications[i].currentPeriod['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
+    //             application['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
     //           }
     //         })
     //       );
-    //     });
 
-    //     // now get the number of pending comments for each application
-    //     applications.forEach((application, i) => {
-    //       promises.push(this.commentService.getAllByApplicationId(applications[i]._id)
+    //       // get the number of pending comments
+    //       promises.push(this.commentService.getAllByApplicationId(application._id)
     //         .toPromise()
     //         .then(comments => {
     //           const pending = comments.filter(comment => this.commentService.isPending(comment));
-    //           applications[i]['numComments'] = pending.length.toString();
+    //           application['numComments'] = pending.length.toString();
     //         })
     //       );
-    //     });
 
-    //     // NOT NEEDED AT THIS TIME
-    //     // // now get the decision for each application
-    //     // applications.forEach((application, i) => {
-    //     //   promises.push(this.decisionService.getByApplicationId(applications[i]._id)
-    //     //     .toPromise()
-    //     //     .then(decision => applications[i].decision = decision)
-    //     //   );
-    //     // });
+    //       // NB: we don't get the decision here
 
-    //     // now get the referenced data (features) for each application
-    //     applications.forEach((application, i) => {
+    //       // get the features
     //       promises.push(this.featureService.getByApplicationId(application._id)
     //         .toPromise()
-    //         .then(features => {
-    //           application.features = features;
-
-    //           // calculate Total Area (hectares) from all features
-    //           application.areaHectares = 0;
-    //           _.each(application.features, function (f) {
-    //             if (f['properties']) {
-    //               application.areaHectares += f['properties'].TENURE_AREA_IN_HECTARES;
-    //             }
-    //           });
-
-    //           // derive application status for display
-    //           application['appStatus'] = this.getStatusString(application.status);
-    //         })
+    //         .then(features => application.features = features)
     //       );
     //     });
 
@@ -218,6 +203,7 @@ export class ApplicationService {
     const self = this;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const promises: Array<Promise<any>> = [];
 
     // rest call 1
     return this.api.getApplication(appId)

@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -18,8 +17,11 @@ export class CommentPeriodService {
   readonly CLOSED = 'Closed';
   readonly OPEN = 'Open';
 
+  // use helpers to get these:
+  private commentStatuses = [];
+
+  // for caching
   private commentPeriod: CommentPeriod = null;
-  public commentStatuses = [];
 
   constructor(private api: ApiService) {
     // user-friendly strings
@@ -44,7 +46,8 @@ export class CommentPeriodService {
           this.commentPeriod = new CommentPeriod(res[0]);
           return this.commentPeriod;
         }
-      });
+      })
+      .catch(this.api.handleError);
   }
 
   add(orig: CommentPeriod): Observable<CommentPeriod> {
@@ -59,7 +62,8 @@ export class CommentPeriodService {
       period.description = period.description.replace(/\n/g, '\\n');
     }
 
-    return this.api.addCommentPeriod(period);
+    return this.api.addCommentPeriod(period)
+    .catch(this.api.handleError);
   }
 
   save(orig: CommentPeriod): Observable<CommentPeriod> {
@@ -71,7 +75,8 @@ export class CommentPeriodService {
       period.description = period.description.replace(/\n/g, '\\n');
     }
 
-    return this.api.saveCommentPeriod(period);
+    return this.api.saveCommentPeriod(period)
+    .catch(this.api.handleError);
   }
 
   delete(period: CommentPeriod): Observable<CommentPeriod> {
@@ -86,13 +91,11 @@ export class CommentPeriodService {
     return this.api.unPublishCommentPeriod(period);
   }
 
-  // returns first published period - multiple comment periods are currently not suported
+  // returns first period - multiple comment periods are currently not suported
   getCurrent(periods: CommentPeriod[]): CommentPeriod {
-    const published = periods.filter(period => period.isPublished);
-    return (published.length > 0) ? published[0] : null;
+    return (periods.length > 0) ? periods[0] : null;
   }
 
-  // NB: see also ManageCommentPeriodsComponent.getStatus()
   getStatus(period: CommentPeriod): string {
     if (!period || !period.startDate || !period.endDate) {
       return this.commentStatuses[this.NOT_OPEN];

@@ -1,63 +1,31 @@
 @import "assets/styles/base/base.scss";
 
-section {
-  padding: 1.5rem;
-  padding-top: 1.25rem;
-
-  .title {
-    letter-spacing: -0.02rem;
-    text-transform: uppercase;
-    font-size: 1.1em;
-    font-weight: 700;
-  }
-}
-
 .map-thumbnail {
+  position: relative;
+
   .map {
     position: relative;
-    height: 300px;
+    height: 500px;
     outline: none;
     touch-action: none;
     background-color: #445a71;
   }
 }
 
-.comment-status {
+.map-thumbnail__no-results {
   text-align: center;
-
-  .badge {
-    margin-top: 0.75rem;
-    padding: 1.25rem;
-    display: block;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: bold;
-  }
-
-  &__actions {
-    .btn {
-      border: none;
-      background: $lightgray;
-      font-size: 0.9375rem;
-      font-weight: bold;
-      i {
-        margin-top: -0.15rem;
-      }
-    }
-  }
+  position: absolute;
+  background: #eee;
+  z-index: 2000;
+  width: 100%;
+  height: 100%;
 }
 
-.comment-count {
+.no-results-msg {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  left: 0;
+  margin-top: -12px;
   text-align: center;
-
-  .badge {
-    margin: 0 auto;
-    width: 4rem;
-    height: 4rem;
-    border-radius: 50%;
-    line-height: 2.8rem;
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 700;
-  }
 }

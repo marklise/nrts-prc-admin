@@ -80,19 +80,19 @@ export class ApiService {
         break;
 
       case 'nrts-prc-scale.pathfinder.gov.bc.ca':
-        // Demo
+        // Scale
         this.pathAPI = 'https://nrts-prc-scale.pathfinder.gov.bc.ca/api';
         this.env = 'scale';
         break;
 
       case 'nrts-prc-beta.pathfinder.gov.bc.ca':
-        // Demo
+        // Beta
         this.pathAPI = 'https://nrts-prc-beta.pathfinder.gov.bc.ca/api';
         this.env = 'beta';
         break;
 
       case 'nrts-prc-master.pathfinder.gov.bc.ca':
-        // Demo
+        // Master
         this.pathAPI = 'https://nrts-prc-master.pathfinder.gov.bc.ca/api';
         this.env = 'master';
         break;
@@ -148,20 +148,24 @@ export class ApiService {
   getApplications(): Observable<Application[]> {
     const fields = [
       'agency',
+      'areaHectares',
+      'businessUnit',
+      'centroid',
       'cl_file',
       'client',
-      'code',
       'description',
       'internal',
-      'internalID',
-      'latitude',
       'legalDescription',
-      'longitude',
+      'location',
       'name',
-      'postID',
       'publishDate',
-      'region',
-      'tantalisID'
+      'purpose',
+      'status',
+      'subpurpose',
+      'subtype',
+      'tantalisID',
+      'tenureStage',
+      'type'
     ];
     let queryString = 'application?isDeleted=false&fields=';
     _.each(fields, function (f) {
@@ -177,28 +181,24 @@ export class ApiService {
   getApplication(id: string): Observable<Application> {
     const fields = [
       'agency',
+      'areaHectares',
+      'businessUnit',
+      'centroid',
       'cl_file',
       'client',
-      'code',
       'description',
       'internal',
-      'internalID',
-      'latitude',
       'legalDescription',
-      'longitude',
-      'name',
-      'postID',
-      'publishDate',
-      'region',
-      'tantalisID',
-      'purpose',
-      'subpurpose',
-      'type',
-      'subtype',
-      'status',
-      'tenureStage',
       'location',
-      'businessUnit'
+      'name',
+      'publishDate',
+      'purpose',
+      'status',
+      'subpurpose',
+      'subtype',
+      'tantalisID',
+      'tenureStage',
+      'type'
   ];
     const queryString = `application/${id}?isDeleted=false&fields=${this.buildValues(fields)}`;
     return this.http.get<Application>(`${this.pathAPI}/${queryString}`, { });
@@ -207,31 +207,24 @@ export class ApiService {
   getApplicationByTantalisID(tantalisID: number) {
     const fields = [
       'agency',
+      'areaHectares',
+      'businessUnit',
+      'centroid',
       'cl_file',
       'client',
-      'code',
       'description',
       'internal',
-      'internalID',
-      'latitude',
       'legalDescription',
-      'longitude',
+      'location',
       'name',
-      'postID',
       'publishDate',
       'purpose',
-      'region',
       'status',
       'subpurpose',
-      'tantalisID',
-      'purpose',
-      'subpurpose',
-      'type',
       'subtype',
-      'status',
+      'tantalisID',
       'tenureStage',
-      'location',
-      'businessUnit'
+      'type'
     ];
     // NB: API uses 'tantalisId' (even though elsewhere it's 'tantalisID')
     const queryString = `application?isDeleted=false&tantalisId=${tantalisID}&fields=${this.buildValues(fields)}`;
@@ -265,20 +258,24 @@ export class ApiService {
 
     const fields = [
       'agency',
+      'areaHectares',
+      'businessUnit',
+      'centroid',
       'cl_file',
       'client',
-      'code',
       'description',
       'internal',
-      'internalID',
-      'latitude',
       'legalDescription',
-      'longitude',
+      'location',
       'name',
-      'postID',
       'publishDate',
-      'region',
-      'tantalisID'
+      'purpose',
+      'status',
+      'subpurpose',
+      'subtype',
+      'tantalisID',
+      'tenureStage',
+      'type'
     ];
     let queryString = 'application/' + app._id + '?fields=';
     _.each(fields, function (f) {
@@ -318,6 +315,11 @@ export class ApiService {
     ];
     const queryString = `feature?isDeleted=false&applicationId=${applicationId}&fields=${this.buildValues(fields)}`;
     return this.http.get<Feature[]>(`${this.pathAPI}/${queryString}`, { });
+  }
+
+  deleteFeaturesByApplicationId(applicationId: string) {
+    const queryString = 'feature/?applicationID=' + applicationId;
+    return this.http.delete(`${this.pathAPI}/${queryString}`, { });
   }
 
   //
@@ -437,9 +439,7 @@ export class ApiService {
       '_addedBy',
       '_application',
       'startDate',
-      'endDate',
-      'description',
-      'internal'
+      'endDate'
     ];
     let queryString = 'commentperiod?isDeleted=false&_application=' + appId + '&fields=';
     _.each(fields, function (f) {
@@ -455,9 +455,7 @@ export class ApiService {
       '_addedBy',
       '_application',
       'startDate',
-      'endDate',
-      'description',
-      'internal'
+      'endDate'
     ];
     let queryString = 'commentperiod/' + id + '?fields=';
     _.each(fields, function (f) {
@@ -508,7 +506,12 @@ export class ApiService {
   //
   // Comments
   //
-  getCommentsByPeriodId(periodId: string): Observable<Comment[]> {
+  getCommentsByPeriodIdNoFields(periodId: string): Observable<Comment[]>  {
+    const queryString = `comment?isDeleted=false&_commentPeriod=${periodId}&pageNum=0&pageSize=1000000`; // max 1M records
+    return this.http.get<Comment[]>(`${this.pathAPI}/${queryString}`, { });
+  }
+
+  getCommentsByPeriodId(periodId: string, pageNum: number, pageSize: number, sortBy: string) {
     const fields = [
       '_addedBy',
       '_commentPeriod',
@@ -519,13 +522,14 @@ export class ApiService {
       'dateAdded',
       'commentStatus'
     ];
-    let queryString = 'comment?isDeleted=false&_commentPeriod=' + periodId + '&fields=';
-    _.each(fields, function (f) {
-      queryString += f + '|';
-    });
-    // Trim the last |
-    queryString = queryString.replace(/\|$/, '');
-    return this.http.get<Comment[]>(`${this.pathAPI}/${queryString}`, { });
+
+    let queryString = `comment?isDeleted=false&_commentPeriod=${periodId}&`;
+    if (pageNum !== null) { queryString += `pageNum=${pageNum}&`; }
+    if (pageSize !== null) { queryString += `pageSize=${pageSize}&`; }
+    if (sortBy !== null) { queryString += `sortBy=${sortBy}&`; }
+    queryString += `fields=${this.buildValues(fields)}`;
+
+    return this.http.get(`${this.pathAPI}/${queryString}`, { });
   }
 
   getComment(id: string): Observable<Comment[]> {

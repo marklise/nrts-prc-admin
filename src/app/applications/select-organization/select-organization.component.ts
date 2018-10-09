@@ -20,6 +20,7 @@ export interface DataModel {
 // NOTE: dialog components must not implement OnDestroy
 //       otherwise they don't return a result
 export class SelectOrganizationComponent extends DialogComponent<DataModel, string> implements DataModel, OnInit {
+  public isLoading = true;
   public dispositionId: number = null;
   public clients: Array<Client> = [];
   public selectedClients: Array<Client> = [];
@@ -46,6 +47,7 @@ export class SelectOrganizationComponent extends DialogComponent<DataModel, stri
             //   self.selectedClients = i;
             // }
           });
+          this.isLoading = false;
         },
         error => {
           this.api.ensureLoggedIn();
