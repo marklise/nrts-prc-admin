@@ -3,10 +3,10 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/catch';
-import { of, forkJoin } from 'rxjs';
 import { map, flatMap } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import { of, forkJoin } from 'rxjs';
 
 import { Application } from 'app/models/application';
 import { ApiService } from './api';
@@ -96,78 +96,11 @@ export class ApplicationService {
 
   // get all applications
   getAll(): Observable<Application[]> {
-    // TODO
-    return null;
-    // // first get the applications
-    // return this.getAllInternal()
-    //   .mergeMap(applications => {
-    //     if (applications.length === 0) {
-    //       return Observable.of([] as Application[]);
-    //     }
-
-    //     const now = new Date();
-    //     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    //     const promises: Array<Promise<any>> = [];
-
-    //     applications.forEach((application) => {
-    //       // replace \\n (JSON format) with newlines
-    //       if (application.description) {
-    //         application.description = application.description.replace(/\\n/g, '\n');
-    //       }
-    //       if (application.legalDescription) {
-    //         application.legalDescription = application.legalDescription.replace(/\\n/g, '\n');
-    //       }
-
-    //       // derive region code
-    //       application.region = this.getRegionCode(application.businessUnit);
-
-    //       // user-friendly application status
-    //       application['appStatus'] = this.getStatusString(this.getStatusCode(application.status));
-
-    //       // 7-digit CL File number for display
-    //       if (application.cl_file) {
-    //         application['clFile'] = application.cl_file.toString().padStart(7, '0');
-    //       }
-
-    //       // NB: we don't get the documents here
-
-    //       // get the current comment period
-    //       promises.push(this.commentPeriodService.getAllByApplicationId(application._id)
-    //         .toPromise()
-    //         .then(periods => {
-    //           const cp = this.commentPeriodService.getCurrent(periods);
-    //           application.currentPeriod = cp;
-    //           // user-friendly comment period status
-    //           application['cpStatus'] = this.commentPeriodService.getStatus(cp);
-    //           // derive days remaining for display
-    //           // use moment to handle Daylight Saving Time changes
-    //           if (cp && this.commentPeriodService.isOpen(cp)) {
-    //             application['daysRemaining'] = moment(cp.endDate).diff(moment(today), 'days') + 1; // including today
-    //           }
-    //         })
-    //       );
-
-    //       // get the number of pending comments
-    //       promises.push(this.commentService.getAllByApplicationId(application._id)
-    //         .toPromise()
-    //         .then(comments => {
-    //           const pending = comments.filter(comment => this.commentService.isPending(comment));
-    //           application['numComments'] = pending.length.toString();
-    //         })
-    //       );
-
-    //       // NB: we don't get the decision here
-
-    //       // get the features
-    //       promises.push(this.featureService.getByApplicationId(application._id)
-    //         .toPromise()
-    //         .then(features => application.features = features)
-    //       );
-    //     });
-
-    //     return Promise.all(promises).then(() => { return applications; });
-    //   })
-    //   .catch(this.api.handleError);
+    return this.getAllInternal()
+      .map(applications => {
+        return applications.length;
+      })
+      .catch(this.api.handleError);
   }
 
   // get just the applications
@@ -179,7 +112,7 @@ export class ApplicationService {
   // get a specific application by its Tantalis ID
   getByTantalisID(tantalisID: number, forceReload: boolean = false): Observable<Application> {
     if (this.application && this.application.tantalisID === tantalisID && !forceReload) {
-      return Observable.of(this.application);
+      return of(this.application);
     }
 
     return this.api.getApplicationByTantalisID(tantalisID)
@@ -251,6 +184,12 @@ export class ApplicationService {
             // Decision
             const decision = payloads[3];
             self.application.decision = decision;
+
+            // user-friendly application status
+            self.application['appStatus'] = this.getStatusString(this.getStatusCode(self.application.status));
+
+             // derive region code
+            self.application.region = this.getRegionCode(self.application.businessUnit);
 
             // Finally update the object and return
             return self.application;

@@ -9,6 +9,7 @@ export class CommentPeriod {
   _id: string;
   _addedBy: string;
   _application: string;
+  description: string;
   code: string;
   startDate: Date;
   endDate: Date;

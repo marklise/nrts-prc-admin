@@ -651,43 +651,41 @@ export class ApiService {
     return this.http.post<Document>(`${this.pathAPI}/${queryString}`, formData, { });
   }
 
-  downloadDocument(document: Document): Subscription {
-    return this.getDocumentBlob(document)
-      .subscribe((value: Blob) => {
-        const blob = new Blob([value], { type: document.internalMime });
-        FileSaver.saveAs(blob, document.documentFileName);
-      });
+  public async downloadResource(id: string): Promise<Blob> {
+    const queryString = 'document/' + id + '/download';
+    const file = await this.http.get<Blob>(this.pathAPI + '/' + queryString, { responseType: 'blob' as 'json'}).toPromise();
+    return file;
   }
 
-  // NB: for IE, this behaves the same as downloadDocument()
-  openDocument(document: Document): Subscription {
-    return this.getDocumentBlob(document)
-      .subscribe((value: Blob) => {
-        if (this.isMS) {
-          // IE has its own API for creating and downloading files
-          window.navigator.msSaveOrOpenBlob(value, document.documentFileName);
-        } else {
-          const tab = window.open();
-          // not supported by IE due to security restrictions
-          const fileURL = URL.createObjectURL(value);
-          tab.location.href = fileURL;
-        }
-      });
+  public async downloadFile(document: Document): Promise<void> {
+    const blob = await this.downloadResource(document._id);
+    const filename = document.documentFileName;
+
+    if (this.isMS) {
+      window.navigator.msSaveBlob(blob, filename);
+    } else {
+      const url = window.URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      window.document.body.appendChild(a);
+      a.setAttribute('style', 'display: none');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    }
   }
 
-  private getDocumentBlob(document: Document): Observable<Blob> {
-    const queryString = 'document/' + document._id + '/download';
-    const headers = new Headers({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.token });
-    const requestOptions = {
-      params: new HttpParams()
-    };
-    requestOptions.params.set('responseType', 'blob' as 'blob');
-    requestOptions.params.set('Authorization', 'Bearer ' + this.token);
-    return this.http.get(this.pathAPI + '/' + queryString, requestOptions)
-    .map(response => <Blob>response);
-      // .map((value: Response) => {
-      //   return new Blob([value.blob()], { type: document.internalMime });
-      // });
+  public async openFile(document: Document): Promise<void> {
+    const blob = await this.downloadResource(document._id);
+    const filename = document.documentFileName;
+    if (this.isMS) {
+      window.navigator.msSaveBlob(blob, filename);
+    } else {
+      const tab = window.open();
+      const fileURL = URL.createObjectURL(blob);
+      tab.location.href = fileURL;
+    }
   }
 
   //

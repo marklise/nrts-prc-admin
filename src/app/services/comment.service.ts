@@ -4,7 +4,7 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/of';
+import { of, forkJoin } from 'rxjs';
 import * as _ from 'lodash';
 
 import { ApiService } from './api';
@@ -33,7 +33,7 @@ export class CommentService {
     return this.commentPeriodService.getAllByApplicationId(appId)
       .mergeMap(periods => {
         if (periods.length === 0) {
-          return Observable.of(0);
+          return of(0);
         }
 
         // count comments for first comment period only
@@ -62,7 +62,7 @@ export class CommentService {
     return this.commentPeriodService.getAllByApplicationId(appId)
       .mergeMap(periods => {
         if (periods.length === 0) {
-          return Observable.of([] as Comment[]);
+          return of([] as Comment[]);
         }
 
         // get comments for first comment period only
@@ -117,7 +117,7 @@ export class CommentService {
   // (including documents)
   getById(commentId: string, forceReload: boolean = false): Observable<Comment> {
     if (this.comment && this.comment._id === commentId && !forceReload) {
-      return Observable.of(this.comment);
+      return of(this.comment);
     }
 
     // first get the comment data
@@ -128,7 +128,7 @@ export class CommentService {
       })
       .mergeMap(comment => {
         if (!comment) {
-          return Observable.of(null as Comment);
+          return of(null as Comment);
         }
 
         // replace \\n (JSON format) with newlines

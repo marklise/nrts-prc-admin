@@ -39,9 +39,7 @@
             <th class="application-table__status-col sortable" (click)="sort('appStatus')">Status
               <i class="sort" [ngClass]="{'sort-asc': (column == 'appStatus' && direction < 0), 'sort-desc': (column == 'appStatus' && direction > 0) }" aria-hidden="true"></i>
             </th>
-            <th class="application-table__commenting-col sortable" (click)="sort('cpStatus')">PRC Status
-              <i class="sort" [ngClass]="{'sort-asc': (column == 'cpStatus' && direction < 0), 'sort-desc': (column == 'cpStatus' && direction > 0) }" aria-hidden="true"></i>
-            </th>
+
           </tr>
         </thead>
 

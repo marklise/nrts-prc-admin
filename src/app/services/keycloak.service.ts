@@ -9,7 +9,7 @@ export class KeycloakService {
 
   constructor() {
     if (window.location.origin === 'http://localhost:4200') {
-      this.keycloakEnabled = false;
+      this.keycloakEnabled = true;
     } else {
       this.keycloakEnabled = true;
     }

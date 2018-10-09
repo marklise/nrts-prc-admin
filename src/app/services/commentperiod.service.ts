@@ -70,11 +70,6 @@ export class CommentPeriodService {
     // make a (deep) copy of the passed-in comment period so we don't change it
     const period = _.cloneDeep(orig);
 
-    // replace newlines with \\n (JSON format)
-    if (period.description) {
-      period.description = period.description.replace(/\n/g, '\\n');
-    }
-
     return this.api.saveCommentPeriod(period)
     .catch(this.api.handleError);
   }

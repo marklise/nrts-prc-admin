@@ -3,7 +3,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/of';
+import { of } from 'rxjs';
 
 import { ApiService } from './api';
 import { Document } from 'app/models/document';
@@ -32,7 +32,7 @@ export class DocumentService {
   // get a specific document by its id
   getById(documentId: string, forceReload: boolean = false): Observable<Document> {
     if (this.document && this.document._id === documentId && !forceReload) {
-      return Observable.of(this.document);
+      return of(this.document);
     }
 
     return this.api.getDocument(documentId)

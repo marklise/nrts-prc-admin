@@ -3,8 +3,7 @@ import { Observable } from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/merge';
-import 'rxjs/add/observable/of';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import * as _ from 'lodash';
 
 import { ApiService } from './api';
@@ -39,7 +38,7 @@ export class SearchService {
   getByClidDtid(keys: string[]): Observable<SearchResults> {
     const observables = keys.map(key => { return this.getByCLID(key); })
       .concat(keys.map(key => { return this.getByDTID(+key); }));
-    return Observable.of(new SearchResults()).merge(...observables);
+    return of(new SearchResults()).merge(...observables);
   }
 
   // get search results by CL File #

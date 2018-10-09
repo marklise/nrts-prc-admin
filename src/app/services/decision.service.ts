@@ -56,7 +56,7 @@ export class DecisionService {
   getById(decisionId, forceReload: boolean = false): Observable<Decision> {
     const self = this;
     if (this.decision && this.decision._id === decisionId && !forceReload) {
-      return Observable.of(this.decision);
+      return of(this.decision);
     }
 
     // Get the decision

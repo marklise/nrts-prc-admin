@@ -3,7 +3,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/of';
+import { of, forkJoin } from 'rxjs';
 
 import { ApiService } from './api';
 import { Organization } from 'app/models/organization';
@@ -34,7 +34,7 @@ export class OrganizationService {
     return null;
 
     // if (this.organization && this.organization._id === orgId && !forceReload) {
-    //   return Observable.of(this.organization);
+    //   return of(this.organization);
     // }
 
     // return this.api.getOrganization(orgId)
