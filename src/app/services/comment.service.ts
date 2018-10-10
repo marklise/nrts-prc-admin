@@ -90,6 +90,12 @@ export class CommentService {
     .catch(this.api.handleError);
   }
 
+  // get count of comments for the specified comment period id
+  getCommentsByPeriodId(periodId: string): Observable<Comment[]> {
+    return this.api.getCommentsByPeriodIdNoFields(periodId)
+    .catch(this.api.handleError);
+  }
+
   // get all comments for the specified comment period id
   // (without documents)
   getAllByPeriodId(periodId: string, pageNum: number = 0, pageSize: number = 10, sortBy: string = null): Observable<Comment[]> {

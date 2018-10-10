@@ -1,4 +1,4 @@
-import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { NgModule, APP_INITIALIZER, ApplicationRef } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -109,4 +109,8 @@ export function kcFactory(keycloakService: KeycloakService) {
   bootstrap: [AppComponent]
 })
 
-export class AppModule { }
+export class AppModule {
+  constructor(applicationRef: ApplicationRef) {
+    Object.defineProperty(applicationRef, '_rootComponents', {get: () => applicationRef['components']});
+  }
+}

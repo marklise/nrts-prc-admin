@@ -96,11 +96,9 @@ export class ApplicationService {
 
   // get all applications
   getAll(): Observable<Application[]> {
+    const self = this;
     return this.getAllInternal()
-      .map(applications => {
-        return applications.length;
-      })
-      .catch(this.api.handleError);
+    .catch(this.api.handleError);
   }
 
   // get just the applications
