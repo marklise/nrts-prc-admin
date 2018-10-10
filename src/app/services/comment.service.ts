@@ -85,6 +85,7 @@ export class CommentService {
   }
 
   // get count of comments for the specified comment period id
+  // TODO: count only pending comments? (need comment status)
   getCountByPeriodId(periodId: string): Observable<number> {
     return this.api.getCommentsByPeriodIdNoFields(periodId)
     .catch(this.api.handleError);
@@ -205,15 +206,15 @@ export class CommentService {
   }
 
   isAccepted(comment: Comment): boolean {
-    return comment.commentStatus.toLowerCase() === this.accepted.toLowerCase();
+    return comment && comment.commentStatus && comment.commentStatus.toLowerCase() === this.accepted.toLowerCase();
   }
 
   isPending(comment: Comment): boolean {
-    return comment.commentStatus.toLowerCase() === this.pending.toLowerCase();
+    return comment && comment.commentStatus && comment.commentStatus.toLowerCase() === this.pending.toLowerCase();
   }
 
   isRejected(comment: Comment): boolean {
-    return comment.commentStatus.toLowerCase() === this.rejected.toLowerCase();
+    return comment && comment.commentStatus && comment.commentStatus.toLowerCase() === this.rejected.toLowerCase();
   }
 
   doAccept(comment: Comment): Comment {
