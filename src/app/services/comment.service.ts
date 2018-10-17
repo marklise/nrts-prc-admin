@@ -30,9 +30,14 @@ export class CommentService {
   ) { }
 
   // get count of comments for the specified comment period id
+  // TODO: count only pending comments? (need comment status)
   getCountByPeriodId(periodId: string): Observable<number> {
-    return this.api.getCountCommentsByPeriodId(periodId)
-      .catch(error => this.api.handleError(error));
+    return this.api.getCommentsByPeriodIdNoFields(periodId)
+      .map(res => {
+        const comments = res.text() ? res.json() : [];
+        return comments.length;
+      })
+      .catch(this.api.handleError);
   }
 
   // get all comments for the specified application id
@@ -76,6 +81,13 @@ export class CommentService {
                 .pipe(
                   map(documents => {
                     documents.forEach(doc => {
+                      // replace \\n (JSON format) with newlines
+                      if (comment.comment) {
+                        comment.comment = comment.comment.replace(/\\n/g, '\n');
+                      }
+                      if (comment.review && comment.review.reviewerNotes) {
+                        comment.review.reviewerNotes = comment.review.reviewerNotes.replace(/\\n/g, '\n');
+                      }
                       comment.documents.push(doc);
                     });
                     return comment;
