@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Params, Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { Subscription } from 'rxjs/Subscription';
-import { throwError } from 'rxjs';
+import { throwError, of } from 'rxjs';
+import { tap, map } from 'rxjs/operators'
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import * as _ from 'lodash';
@@ -202,6 +203,17 @@ export class ApiService {
   ];
     const queryString = `application/${id}?isDeleted=false&fields=${this.buildValues(fields)}`;
     return this.http.get<Application>(`${this.pathAPI}/${queryString}`, { });
+  }
+
+  getApplicationsCount(): Observable<any> {
+    const queryString = `application?isDeleted=false`;
+    return this.http.head<HttpResponse<Object>>(`${this.pathAPI}/${queryString}`, {observe: 'response'})
+    .pipe(
+      map( res => {
+        // Retrieve the count from the header.
+        return parseInt(res.headers.get('x-total-count'));
+      })
+    );
   }
 
   getApplicationByTantalisID(tantalisID: number) {
@@ -506,9 +518,15 @@ export class ApiService {
   //
   // Comments
   //
-  getCommentsByPeriodIdNoFields(periodId: string): Observable<Comment[]>  {
-    const queryString = `comment?isDeleted=false&_commentPeriod=${periodId}&pageNum=0&pageSize=1000000`; // max 1M records
-    return this.http.get<Comment[]>(`${this.pathAPI}/${queryString}`, { });
+  getCommentCountByPeriodId(periodId: string): Observable<number> {
+    const queryString = `comment?isDeleted=false&_commentPeriod=${periodId}`; // max 1M records
+    return this.http.head<HttpResponse<Object>>(`${this.pathAPI}/${queryString}`, {observe: 'response'})
+    .pipe(
+      map( res => {
+        // Retrieve the count from the header.
+        return parseInt(res.headers.get('x-total-count'));
+      })
+    );
   }
 
   getCommentsByPeriodId(periodId: string, pageNum: number, pageSize: number, sortBy: string) {
